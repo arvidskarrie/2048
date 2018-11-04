@@ -10,12 +10,22 @@ import random
 import msvcrt
 import time
 from builtins import print
+from unicodedata import bidirectional
 
-
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
 
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
+        
+        UP = 0
+        RIGHT = 1
+        DOWN = 2
+        LEFT = 3
+
     
     def initiate_board(self):
         random.seed()
@@ -42,15 +52,11 @@ class game_of_2048:
         for i in range(4):
             print(self.board[4 * i:4 * (i + 1)])
         print('---------')
-            
-    def moveUp(self):
-        self.pack_n_merge()
-        self.insert_brick()
         
-    def moveDown(self): 
-        self.rotate(2)
+    def move(self, direction): 
+        self.rotate(direction)
         self.pack_n_merge()
-        self.rotate(2)
+        self.rotate(-1 * direction)
         self.insert_brick()
         
     def pack_n_merge(self):
@@ -74,23 +80,37 @@ class game_of_2048:
                     self.board[4 * (row + 1) + column] = 0
                         
     def rotate(self, direction):
-        #if direction == 1: #90 degrees clockwise
-            
-        if direction == 2: # Down
-            newBoard = []
+        if direction < 0:
+            direction += 4
+             
+        newBoard = []
+        if direction == UP:
+            newBoard = self.board
+        elif direction == LEFT: #90 degrees clockwise
+            for column in range(4):
+                for row in range(4):
+                    newBoard.append(self.board[4 * (3 - row) + column])
+        elif direction == DOWN: # Down
             for i in range(16):
                 newBoard.append(self.board[15-i])
-        
+        elif direction == RIGHT: #90 degrees ccw
+            for column in range(4):
+                for row in range(4):
+                    newBoard.append(self.board[4 * row + (3 - column)])
+        else:
+            print('impossible move, direction:', direction)
+            quit(0)
         
         self.board = newBoard 
     
-    
 def main():
     board = game_of_2048()
-    for move in range(100):
+    for move in range(2):
         print('Move', move)
-        board.moveUp()
-        board.moveDown()
+        board.move(UP)
+        board.move(RIGHT)
+        board.move(DOWN)
+        board.move(LEFT)
     
     print('quit')
 
