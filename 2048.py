@@ -10,6 +10,7 @@ import random
 import msvcrt
 import time
 import sys
+import tkinter as tk
 from builtins import print
 from unicodedata import bidirectional
 
@@ -60,6 +61,8 @@ class game_of_2048:
         self.rotate(-1 * direction)
         self.insert_brick()
         
+        #TODO: Note if nothing has been done 
+        
     def pack_n_merge(self):
         self.pack()
         self.merge() 
@@ -104,36 +107,64 @@ class game_of_2048:
         
         self.board = newBoard 
     
+
+    
 def main():
     board = game_of_2048()
     
-    while True:
-        c = sys.stdin.read(1)
-        
-        move  = ord(c)
-        print(move)
-        
-        if move is ord('w'):
+    def make_a_move(event):
+        key = event.char
+        # TODO: Create nicer macro
+        if ord(key) is ord('w'):
+            print('up')
             board.move(UP)
-        elif move is ord('d'):
-            board.move(RIGHT)
-        elif move is ord('s'):
+        elif ord(key) is ord('s'):
+            print('down')
             board.move(DOWN)
-        elif move is ord('a'):
+        elif ord(key) is ord('d'):
+            print('right')
+            board.move(RIGHT)
+        elif ord(key) is ord('a'):
+            print('left')
             board.move(LEFT)
+        else:
+            print('error:', key)
     
+    def callback(event):
+        frame.focus_set()
+        print('clicked at', event.x, event.y)
+        
+    def initiate_frames():
+        
+        frameList = []
+        
+        for i in range(16):
+            frame = tk.Frame(outer_frame, width=100, height=100)
+            
+            row_idx = i // 4
+            column_idx = i % 4
+            frame.grid(row = row_idx, column = column_idx)
+            
+            frameList.append(frame)
+            
+        return frameList
+        
+    root = tk.Tk()
+    outer_frame = tk.Frame(root, width=400, height=400)
+    
+    frameList = initiate_frames()
+
+    frameList[3].configure(background='blue')
+    frameList[8].configure(background='red')
+    outer_frame.pack()
+
+    root.bind('<Key>', make_a_move)
+    root.bind('<Button-1>', callback)
+
+    root.mainloop()
+
     print('quit')
 
-def read():
-    str = ""
-    print('soon')
-    while True:
-        c = sys.stdin.read(1) # reads one byte at a time, similar to getchar()
-        if c == ' ':
-            break
-        str += c
-    print(str)
-    
-    
 main()
-#main()
+ 
+
