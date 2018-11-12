@@ -10,6 +10,7 @@ import random
 import msvcrt
 import time
 import sys
+import tkinter as tk
 from builtins import print
 from unicodedata import bidirectional
 
@@ -104,36 +105,47 @@ class game_of_2048:
         
         self.board = newBoard 
     
+
+    
 def main():
     board = game_of_2048()
     
-    while True:
-        c = sys.stdin.read(1)
+    def make_a_move(event):
+        key = event.char
         
-        move  = ord(c)
-        print(move)
+        #print(key, ord(key))
         
-        if move is ord('w'):
+        if ord(key) is ord('w'):
+            print('up')
             board.move(UP)
-        elif move is ord('d'):
-            board.move(RIGHT)
-        elif move is ord('s'):
+        elif ord(key) is ord('s'):
+            print('down')
             board.move(DOWN)
-        elif move is ord('a'):
+        elif ord(key) is ord('d'):
+            print('right')
+            board.move(RIGHT)
+        if ord(key) is ord('a'):
+            print('left')
             board.move(LEFT)
+        else:
+            print('error:', key)
     
+    def callback(event):
+        frame.focus_set()
+        print('clicked at', event.x, event.y)
+        
+    root = tk.Tk()
+    frame = tk.Frame(root, width=200, height=200)
+
+    frame.bind('<Key>', make_a_move)
+    frame.bind('<Button-1>', callback)
+    frame.pack()
+    frame.bind
+
+    root.mainloop()
+
     print('quit')
 
-def read():
-    str = ""
-    print('soon')
-    while True:
-        c = sys.stdin.read(1) # reads one byte at a time, similar to getchar()
-        if c == ' ':
-            break
-        str += c
-    print(str)
-    
-    
 main()
-#main()
+ 
+
