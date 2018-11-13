@@ -22,13 +22,6 @@ LEFT = 3
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
-        
-        UP = 0
-        RIGHT = 1
-        DOWN = 2
-        LEFT = 3
-
-    
     def initiate_board(self):
         random.seed()
         
@@ -107,64 +100,62 @@ class game_of_2048:
         
         self.board = newBoard 
     
-
+    def put_numbers(self, frameList):
+        T = []
+        for i in range(16):
+            frameList[i].pack_forget()
+            T.append(tk.Text(frameList[i], height=2, width=10))
+            T[i].insert(tk.END, str(self.board[i]))
+            T[i].pack()
+        
+        return
     
 def main():
     board = game_of_2048()
     
     def make_a_move(event):
-        key = event.char
+        def get_dir_from_char(char):
+            if char is ord('w'): return UP
+            elif char is ord('s'): return DOWN
+            elif char is ord('d'): return RIGHT
+            elif char is ord('a'): return LEFT
+            else: return 
+            
+        dir = get_dir_from_char(ord(event.char))
         # TODO: Create nicer macro
-        if ord(key) is ord('w'):
-            print('up')
-            board.move(UP)
-        elif ord(key) is ord('s'):
-            print('down')
-            board.move(DOWN)
-        elif ord(key) is ord('d'):
-            print('right')
-            board.move(RIGHT)
-        elif ord(key) is ord('a'):
-            print('left')
-            board.move(LEFT)
+        if dir in [UP, DOWN, LEFT, RIGHT]:
+            board.move(dir)
         else:
-            print('error:', key)
-    
-    def callback(event):
-        frame.focus_set()
-        print('clicked at', event.x, event.y)
+            print('error:', ord(event.char))
+        repaint()
         
     def initiate_frames():
-        
         frameList = []
-        
         for i in range(16):
             frame = tk.Frame(outer_frame, width=100, height=100)
-            
             row_idx = i // 4
             column_idx = i % 4
             frame.grid(row = row_idx, column = column_idx)
-            
             frameList.append(frame)
-            
         return frameList
+    def repaint():
+        outer_frame.pack_forget()
+        frameList = initiate_frames()
+        outer_frame.pack()
+        board.put_numbers(frameList)
         
     root = tk.Tk()
+    root.bind('<Key>', make_a_move)
     outer_frame = tk.Frame(root, width=400, height=400)
     
-    frameList = initiate_frames()
-
-    frameList[3].configure(background='blue')
-    frameList[8].configure(background='red')
-    outer_frame.pack()
-
-    root.bind('<Key>', make_a_move)
-    root.bind('<Button-1>', callback)
-
+    repaint()
+    
     root.mainloop()
 
     print('quit')
 
 main()
  
-
+# def callback(event):
+#     frame.focus_set()
+#     print('clicked at', event.x, event.y)
