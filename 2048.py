@@ -18,6 +18,7 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+color_scheme = ['black', 'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple']
 
 class game_of_2048:
     def __init__(self):
@@ -104,9 +105,18 @@ class game_of_2048:
         T = []
         for i in range(16):
             frameList[i].pack_forget()
-            T.append(tk.Text(frameList[i], height=2, width=10))
-            T[i].insert(tk.END, str(self.board[i]))
+            board_value = self.board[i]
+            frame_color = ('gray' if board_value is 0 else  color_scheme[int(np.log2(board_value))])
+            
+            
+            T.append(tk.Text(frameList[i], height=3, width=7))
+            T[i].insert(tk.END, '\n  ')
+            T[i].config(bg = frame_color)
+            T[i].insert(tk.END, str(board_value))
             T[i].pack()
+            
+            #frameList[i].config(bg = frame_color)
+                
         
         return
     
