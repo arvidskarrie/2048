@@ -43,21 +43,24 @@ class game_of_2048:
             self.print_board()
             print('game lost')
             quit(0)
-    
-    def print_board(self):
-        for i in range(4):
-            print(self.board[4 * i:4 * (i + 1)])
-        print('---------')
         
     def move(self, direction): 
+        old_board = self.board
         self.rotate(direction)
         self.pack_n_merge()
-        self.rotate(-1 * direction)
-        self.insert_brick()
+        
+        if self.changes_made:
+            self.rotate(-1 * direction)
+            self.insert_brick()
+            return True
+        else:
+            self.board = old_board
+            return False
         
         #TODO: Note if nothing has been done 
         
     def pack_n_merge(self):
+        self.changes_made = False
         self.pack()
         self.merge() 
         self.pack()
@@ -70,12 +73,18 @@ class game_of_2048:
                         self.board[4 * row + column] = self.board[4 * (row + 1) + column]
                         self.board[4 * (row + 1) + column] = 0
                         
+                        if self.board[4 * row + column] != 0:
+                            self.changes_made = True
+                            
+                        
     def merge(self):
         for column in range(4):
             for row in range(3):
-                if self.board[4 * row + column] == self.board[4 * (row + 1) + column]:
-                    self.board[4 * row + column] *= 2
-                    self.board[4 * (row + 1) + column] = 0
+                if self.board[4 * row + column] != 0:
+                    if self.board[4 * row + column] == self.board[4 * (row + 1) + column]:
+                        self.board[4 * row + column] *= 2
+                        self.board[4 * (row + 1) + column] = 0
+                        self.changes_made = True
                         
     def rotate(self, direction):
         if direction < 0:
@@ -115,6 +124,7 @@ class game_of_2048:
             T[i].insert(tk.END, str(board_value))
             T[i].pack()
             
+            #frame_color = ('gray' if board_value is 0 else  color_scheme[int(np.log2(board_value))])
             #frameList[i].config(bg = frame_color)
                 
         
