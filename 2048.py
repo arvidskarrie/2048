@@ -20,6 +20,13 @@ DOWN = 2
 LEFT = 3
 color_scheme = ['black', 'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple']
 
+def get_dir_from_char(char):
+            if char is ord('w'): return UP
+            elif char is ord('s'): return DOWN
+            elif char is ord('d'): return RIGHT
+            elif char is ord('a'): return LEFT
+            else: return 
+            
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
@@ -38,9 +45,7 @@ class game_of_2048:
                 
             insert_value = 2 if (random.random() > 0.1) else 4
             self.board[random_brick] = insert_value
-            self.print_board()
         else:
-            self.print_board()
             print('game lost')
             quit(0)
         
@@ -52,12 +57,12 @@ class game_of_2048:
         if self.changes_made:
             self.rotate(-1 * direction)
             self.insert_brick()
+            
+            #TODO: Check if game over 
             return True
         else:
             self.board = old_board
             return False
-        
-        #TODO: Note if nothing has been done 
         
     def pack_n_merge(self):
         self.changes_made = False
@@ -134,15 +139,10 @@ def main():
     board = game_of_2048()
     
     def make_a_move(event):
-        def get_dir_from_char(char):
-            if char is ord('w'): return UP
-            elif char is ord('s'): return DOWN
-            elif char is ord('d'): return RIGHT
-            elif char is ord('a'): return LEFT
-            else: return 
+        
             
         dir = get_dir_from_char(ord(event.char))
-        # TODO: Create nicer macro
+        
         if dir in [UP, DOWN, LEFT, RIGHT]:
             board.move(dir)
         else:
