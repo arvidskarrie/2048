@@ -22,7 +22,23 @@ LEFT = 3
 UNDO = 5
 SAVE = 6
 SAVE_LAST = 7
+QUIT = 8
+
 color_scheme = get_color_scheme()
+
+def print_game_over(board):
+            print('game over:')
+            for i in board:
+                print(i)
+                
+            points = 0
+            biggest_brick = 0
+            for i in board:
+                points += sum(i)
+                biggest_brick = max(biggest_brick, max(i))
+                
+            print('total points:', points)
+            print('biggest brick:', biggest_brick)
 
 def empty_board():
     empty_board = [[0, 0, 0, 0] for i in range(4)]
@@ -46,6 +62,7 @@ def get_dir_from_char(char):
             elif char is ord('u'): return UNDO
             elif char is ord('i'): return SAVE
             elif char is ord('o'): return SAVE_LAST
+            elif char is ord('p'): return QUIT
             else: return 
             
 class game_of_2048:
@@ -71,14 +88,7 @@ class game_of_2048:
         self.board[row][col] = insert_value
         
         if self.is_game_lost():
-            print('game over')
-            points = 0
-            biggest_brick = 0
-            for i in self.board:
-                points += sum(i)
-                biggest_brick = max(biggest_brick, max(i))
-            print('total points:', points)
-            print('biggest brick:', biggest_brick)
+            print_game_over(self.board)
             
     def is_game_lost(self):
         board = self.board
@@ -163,11 +173,9 @@ class game_of_2048:
         
         self.board = new_board 
     
-    def put_numbers(self, frame_list, text_list):
-        
+    def put_numbers(self, text_list):
         for i in range(16):
             text_list[i].pack_forget()
-            #frame_list[i].pack_forget()
             board_value = self.board[i//4][i%4]
             frame_color = (color_scheme[0] if board_value is 0 else  color_scheme[int(np.log2(board_value))])
             
@@ -176,8 +184,6 @@ class game_of_2048:
             text_list[i].config(bg = frame_color)
             text_list[i].insert(tk.END, str(board_value))
             text_list[i].pack()
-                
-        
         return
     
 def main():
@@ -190,16 +196,17 @@ def main():
             board.move(dir)
         elif dir is UNDO:
             board.board = board.last_board
+        elif dir is QUIT:
+            print_game_over(board.board)
+            quit(0)
         else:
             print('error:', ord(event.char))
-            
-        # TODO: Save current status
         
         repaint()
         
     def repaint():
         outer_frame.pack_forget()
-        board.put_numbers(frame_list, text_list)
+        board.put_numbers(text_list)
         outer_frame.pack()
         
     
@@ -212,8 +219,12 @@ def main():
     text_list = []
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    # board.board = [[0, 2, 4, 8],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+    board.board = [[0, 2, 4, 8],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
     
+    print('undo: u')
+    print('save current: i')
+    print('save last: o')
+    print('quit: p')
     
     repaint()
     
