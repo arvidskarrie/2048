@@ -7,11 +7,7 @@ Created on 4 nov. 2018
 import numpy as np
 import matplotlib as plt
 import random
-import msvcrt
-import time
-import sys
 import tkinter as tk
-from builtins import print
 from color_scheme import get_color_scheme
 from unicodedata import bidirectional
 
@@ -27,18 +23,18 @@ QUIT = 8
 color_scheme = get_color_scheme()
 
 def print_game_over(board):
-            print('game over:')
-            for i in board:
-                print(i)
-                
-            points = 0
-            biggest_brick = 0
-            for i in board:
-                points += sum(i)
-                biggest_brick = max(biggest_brick, max(i))
-                
-            print('total points:', points)
-            print('biggest brick:', biggest_brick)
+    print('game over:')
+    for i in board:
+        print(i)
+        
+    points = 0
+    biggest_brick = 0
+    for i in board:
+        points += sum(i)
+        biggest_brick = max(biggest_brick, max(i))
+        
+    print('total points:', points)
+    print('biggest brick:', biggest_brick)
 
 def empty_board():
     empty_board = [[0, 0, 0, 0] for i in range(4)]
@@ -183,8 +179,7 @@ class game_of_2048:
             text_list[i].pack_forget()
             board_value = self.board[i//4][i%4]
             frame_color = (color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))])
-            
-            # TODO: center text 
+             
             text_list[i].delete('1.0', tk.END)
             text_list[i].insert(tk.END, '\n ')
             if board_value < 1000:
@@ -220,7 +215,13 @@ def main():
     def repaint():
         outer_frame.pack_forget()
         board.put_numbers(text_list)
+        
+        create_warnings()
+        
         outer_frame.pack()
+        
+    def create_warnings():
+        return
     
     root = tk.Tk()
     root.bind('<Key>', make_a_move)

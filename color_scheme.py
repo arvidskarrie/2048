@@ -16,5 +16,6 @@ def get_color_scheme():
         '#0804f9', # 8192 primary blue
         '#ff08e8', # 16384 magenta 
         'white', # 32768 bright pink
+        'black'
         ]
     return color_scheme
