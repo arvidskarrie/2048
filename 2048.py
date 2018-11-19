@@ -46,13 +46,18 @@ def empty_board():
 
 def initiate_frames(outer_frame):
         frame_list = []
+        text_list = []
+        
         for i in range(16):
             frame = tk.Frame(outer_frame, width=100, height=100)
             row_idx = i // 4
             column_idx = i % 4
             frame.grid(row = row_idx, column = column_idx)
             frame_list.append(frame)
-        return frame_list
+            text_list.append(tk.Text(frame_list[i], height=3, width=7))
+            text_list[i].tag_configure("center", justify='center')
+            
+        return frame_list, text_list
     
 def get_dir_from_char(char):
             if char is ord('w'): return UP
@@ -177,12 +182,20 @@ class game_of_2048:
         for i in range(16):
             text_list[i].pack_forget()
             board_value = self.board[i//4][i%4]
-            frame_color = (color_scheme[0] if board_value is 0 else  color_scheme[int(np.log2(board_value))])
+            frame_color = (color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))])
             
+            # TODO: center text 
             text_list[i].delete('1.0', tk.END)
-            text_list[i].insert(tk.END, '\n  ')
+            text_list[i].insert(tk.END, '\n ')
+            if board_value < 1000:
+                text_list[i].insert(tk.END, ' ')
+                if board_value < 10:
+                    text_list[i].insert(tk.END, ' ')
+                
+                
             text_list[i].config(bg = frame_color)
             text_list[i].insert(tk.END, str(board_value))
+            
             text_list[i].pack()
         return
     
@@ -208,18 +221,17 @@ def main():
         outer_frame.pack_forget()
         board.put_numbers(text_list)
         outer_frame.pack()
-        
     
     root = tk.Tk()
     root.bind('<Key>', make_a_move)
     outer_frame = tk.Frame(root, width=400, height=400)
     
-    frame_list = initiate_frames(outer_frame)
+    frame_list, text_list = initiate_frames(outer_frame)
     
     text_list = []
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    board.board = [[0, 2, 4, 8],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+    board.board = [[0, 2, 4, 2],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
     
     print('undo: u')
     print('save current: i')
