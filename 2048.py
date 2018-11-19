@@ -69,21 +69,21 @@ class game_of_2048:
         if self.is_game_lost():
             print('game over')
             print('total points:')
+            #TODO: Add points = sum of all numbers?
             
     def is_game_lost(self):
         board = self.board
         
-        if 0 in board:
-            return False        
+        for row in range(4):
+            if 0 in board[row]:
+                return False        
         
-        for row in range(3):
-            for col in range(3):
-                if board[row][col] == board[row + 1][col] or board[row][col] == board[row][col + 1]:
+        for idx_1 in range(3):
+            for idx_2 in range(4):
+                if board[idx_1][idx_2] == board[idx_1 + 1][idx_2] or board[idx_2][idx_1] == board[idx_2][idx_1 + 1]:
                     return False
-        
+                
         return True
-        
-        return
             
     def move(self, direction):
         self.rotate(direction)
