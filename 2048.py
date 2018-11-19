@@ -19,15 +19,13 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
-#color_scheme = ['gray', 'light gray', 'beige', 'dark orange', 'brown', 'dark red', 'red', 'purple']
-# TODO: Better colors!
-#color_scheme = ['grey', 'light grey', 'light yellow', 'orange', 'red', 'purple', 'blue', 'green', 
-#                'dark green', 'dark blue', 'purple', 'dark red', 'yellow']
-
-
 color_scheme = ['grey', 'tomato', '#fdaa48', '#fffe7a', 'OliveDrab1', 'green2', '#56fca2', 'DodgerBlue2', 'orchid1',
                 '#ff000d', '#ff5b00', 'yellow', '#01ff07', 'blue2', '#7e1e9c', '#fe01b1'] 
 # To reach 2048 11 colors are needed except grey and black
+
+def empty_board():
+    empty_board = [[0, 0, 0, 0] for i in range(4)]
+    return empty_board
 
 def initiate_frames(outer_frame):
         frame_list = []
@@ -53,36 +51,51 @@ class game_of_2048:
     def initiate_board(self):
         random.seed()
         
-        self.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.board = empty_board()
+         
         self.insert_brick()
     
     def insert_brick(self):
-        if 0 in self.board:
-            random_brick = random.randint(0,15)
-            
-            while (self.board[random_brick] != 0):
-                random_brick = random.randint(0,15)
-                
-            insert_value = 2 if (random.random() > 0.1) else 4
-            self.board[random_brick] = insert_value
-        else:
-            print('game lost')
-            quit(0)
+        row = random.randint(0,3)
+        col = random.randint(0,3)
         
-    def move(self, direction): 
-        old_board = self.board
+        while (self.board[row][col] != 0):
+            row = random.randint(0,3)
+            col = random.randint(0,3)
+            
+        insert_value = 2 if (random.random() > 0.1) else 4
+        self.board[row][col] = insert_value
+        
+        if self.is_game_lost():
+            print('game over')
+            print('total points:')
+            
+    def is_game_lost(self):
+        board = self.board
+        
+        if 0 in board:
+            return False        
+        
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == board[row + 1][col] or board[row][col] == board[row][col + 1]:
+                    return False
+        
+        return True
+        
+        return
+            
+    def move(self, direction):
         self.rotate(direction)
         self.pack_n_merge()
         
+        
+        self.rotate(-1 * direction)
+        
         if self.changes_made:
-            self.rotate(-1 * direction)
             self.insert_brick()
-            
-            #TODO: Check if game over 
-            return True
-        else:
-            self.board = old_board
-            return False
+        
+        return self.changes_made
         
     def pack_n_merge(self):
         self.changes_made = False
@@ -94,53 +107,61 @@ class game_of_2048:
         for column in range(4):
             for repetitions in range(3):
                 for row in range(3):
-                    if self.board[4 * row + column] == 0:
-                        self.board[4 * row + column] = self.board[4 * (row + 1) + column]
-                        self.board[4 * (row + 1) + column] = 0
+                    if self.board[row][column] == 0: 
+                        # and self.board[row + 1][column] != 0:
+                        #TODO: Add and self.board row + 1 != 0
+                        self.board[row][column] = self.board[row + 1][column]
+                        self.board[row + 1][column] = 0
                         
-                        if self.board[4 * row + column] != 0:
+                        if self.board[row][column] != 0:
                             self.changes_made = True
-                            
                         
     def merge(self):
         for column in range(4):
             for row in range(3):
-                if self.board[4 * row + column] != 0:
-                    if self.board[4 * row + column] == self.board[4 * (row + 1) + column]:
-                        self.board[4 * row + column] *= 2
-                        self.board[4 * (row + 1) + column] = 0
+                if self.board[row][column] != 0:
+                    if self.board[row][column] == self.board[row + 1][column]:
+                        self.board[row][column] *= 2
+                        self.board[row + 1][column] = 0
                         self.changes_made = True
                         
     def rotate(self, direction):
         if direction < 0:
             direction += 4
              
-        newBoard = []
+        new_board = empty_board()
+        old_board = self.board
+        
         if direction == UP:
-            newBoard = self.board
+            new_board = old_board
+            
         elif direction == LEFT: #90 degrees clockwise
-            for column in range(4):
-                for row in range(4):
-                    newBoard.append(self.board[4 * (3 - row) + column])
+            for row in range(4):
+                for column in range(4):
+                    new_board[row][column] = old_board[3-column][row]
+                    
         elif direction == DOWN: # Down
-            for i in range(16):
-                newBoard.append(self.board[15-i])
+            for row in range(4):
+                for column in range(4):
+                    new_board[row][column] = old_board[3-row][3-column]
+                    
+                
         elif direction == RIGHT: #90 degrees ccw
-            for column in range(4):
-                for row in range(4):
-                    newBoard.append(self.board[4 * row + (3 - column)])
+            for row in range(4):
+                for column in range(4):
+                    new_board[row][column] = old_board[column][3-row]
         else:
             print('impossible move, direction:', direction)
             quit(0)
         
-        self.board = newBoard 
+        self.board = new_board 
     
     def put_numbers(self, frame_list, text_list):
         
         for i in range(16):
             text_list[i].pack_forget()
             #frame_list[i].pack_forget()
-            board_value = self.board[i]
+            board_value = self.board[i//4][i%4]
             frame_color = (color_scheme[0] if board_value is 0 else  color_scheme[int(np.log2(board_value))])
             
             text_list[i].delete('1.0', tk.END)
@@ -180,7 +201,7 @@ def main():
     text_list = []
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    board.board = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 2*4096, 4*4096, 8*4096]
+    #board.board = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 2*4096, 4*4096, 8*4096]
     
     repaint()
     
