@@ -19,7 +19,9 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
-
+UNDO = 5
+SAVE = 6
+SAVE_LAST = 7
 color_scheme = get_color_scheme()
 
 def empty_board():
@@ -41,6 +43,9 @@ def get_dir_from_char(char):
             elif char is ord('s'): return DOWN
             elif char is ord('d'): return RIGHT
             elif char is ord('a'): return LEFT
+            elif char is ord('u'): return UNDO
+            elif char is ord('i'): return SAVE
+            elif char is ord('o'): return SAVE_LAST
             else: return 
             
 class game_of_2048:
@@ -67,8 +72,13 @@ class game_of_2048:
         
         if self.is_game_lost():
             print('game over')
-            print('total points:')
-            #TODO: Add points = sum of all numbers?
+            points = 0
+            biggest_brick = 0
+            for i in self.board:
+                points += sum(i)
+                biggest_brick = max(biggest_brick, max(i))
+            print('total points:', points)
+            print('biggest brick:', biggest_brick)
             
     def is_game_lost(self):
         board = self.board
@@ -85,9 +95,9 @@ class game_of_2048:
         return True
             
     def move(self, direction):
+        self.last_board = self.board
         self.rotate(direction)
         self.pack_n_merge()
-        
         
         self.rotate(-1 * direction)
         
@@ -106,14 +116,12 @@ class game_of_2048:
         for column in range(4):
             for repetitions in range(3):
                 for row in range(3):
-                    if self.board[row][column] == 0: 
-                        # and self.board[row + 1][column] != 0:
-                        # TODO: Add and self.board row + 1 != 0
+                    if (self.board[row][column] == 0) and (self.board[row + 1][column] != 0):
+                        
                         self.board[row][column] = self.board[row + 1][column]
                         self.board[row + 1][column] = 0
                         
-                        if self.board[row][column] != 0:
-                            self.changes_made = True
+                        self.changes_made = True
                         
     def merge(self):
         for column in range(4):
@@ -180,11 +188,12 @@ def main():
         
         if dir in [UP, DOWN, LEFT, RIGHT]:
             board.move(dir)
+        elif dir is UNDO:
+            board.board = board.last_board
         else:
             print('error:', ord(event.char))
             
         # TODO: Save current status
-        # TODO: Undo
         
         repaint()
         
@@ -204,6 +213,7 @@ def main():
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
     # board.board = [[0, 2, 4, 8],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+    
     
     repaint()
     
