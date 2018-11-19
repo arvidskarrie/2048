@@ -12,6 +12,7 @@ import time
 import sys
 import tkinter as tk
 from builtins import print
+from color_scheme import get_color_scheme
 from unicodedata import bidirectional
 
 UP = 0
@@ -19,9 +20,7 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
-color_scheme = ['grey', 'tomato', '#fdaa48', '#fffe7a', 'OliveDrab1', 'green2', '#56fca2', 'DodgerBlue2', 'orchid1',
-                '#ff000d', '#ff5b00', 'yellow', '#01ff07', 'blue2', '#7e1e9c', '#fe01b1'] 
-# To reach 2048 11 colors are needed except grey and black
+color_scheme = get_color_scheme()
 
 def empty_board():
     empty_board = [[0, 0, 0, 0] for i in range(4)]
@@ -109,7 +108,7 @@ class game_of_2048:
                 for row in range(3):
                     if self.board[row][column] == 0: 
                         # and self.board[row + 1][column] != 0:
-                        #TODO: Add and self.board row + 1 != 0
+                        # TODO: Add and self.board row + 1 != 0
                         self.board[row][column] = self.board[row + 1][column]
                         self.board[row + 1][column] = 0
                         
@@ -184,6 +183,9 @@ def main():
         else:
             print('error:', ord(event.char))
             
+        # TODO: Save current status
+        # TODO: Undo
+        
         repaint()
         
     def repaint():
@@ -201,7 +203,7 @@ def main():
     text_list = []
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    #board.board = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 2*4096, 4*4096, 8*4096]
+    # board.board = [[0, 2, 4, 8],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
     
     repaint()
     
