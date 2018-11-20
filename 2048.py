@@ -199,11 +199,11 @@ class game_of_2048:
         
         self.board = new_board 
     
-    def put_numbers(self, text_list):
+    def put_numbers(self, text_list, warnings = False):
         for i in range(16):
             text_list[i].pack_forget()
             board_value = self.board[i//4][i%4]
-            frame_color = (color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))])
+            frame_color = 'red' if warnings else color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))]
              
             text_list[i].delete('1.0', tk.END)
             text_list[i].insert(tk.END, '\n ')
@@ -217,7 +217,6 @@ class game_of_2048:
             text_list[i].insert(tk.END, str(board_value))
             
             text_list[i].pack()
-        return
     
     def detect_warnings(self):
         real_board = self.board
@@ -228,7 +227,6 @@ class game_of_2048:
         
         for i in board:
             num_zeros.append(i.count(0))
-        
         
         warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
         
@@ -264,9 +262,9 @@ def main():
         
     def repaint():
         outer_frame.pack_forget()
-        board.put_numbers(text_list)
-        if board.detect_warnings():
-            print('warning!')
+        warnings =  board.detect_warnings()
+        
+        board.put_numbers(text_list, warnings)
         outer_frame.pack()
     
     root = tk.Tk()
