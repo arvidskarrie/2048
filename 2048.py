@@ -6,6 +6,9 @@ Created on 4 nov. 2018
 
 import numpy as np
 import matplotlib as plt
+from datetime import date
+import time
+import os
 import random
 import tkinter as tk
 from color_scheme import get_color_scheme
@@ -21,6 +24,32 @@ SAVE_LAST = 7
 QUIT = 8
 
 color_scheme = get_color_scheme()
+    
+    
+def save_board(board):
+    dir = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
+    #filename = str(10) #str(datetime.today())
+    #file_dir = dir + filename + '.txt'
+    
+    f = open(dir, 'a')
+    d = str(time.strftime('%X'))
+    f.write(d + ':\n\n')
+    
+    
+    for i in board:
+        f.write(str(i) + '\n')
+    
+    points = 0
+    biggest_brick = 0
+    for i in board:
+        points += sum(i)
+        biggest_brick = max(biggest_brick, max(i))
+        
+    f.write('\ntotal points:' + str(points) + '\n')
+    f.write('biggest brick:' + str(biggest_brick) + '\n')
+        
+    f.write('\n' + str(board) + '\n')
+    f.write('\n----------\n\n')
 
 def print_game_over(board):
     print('game over:')
@@ -69,6 +98,7 @@ def get_dir_from_char(char):
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
+        self.last_board = self.board
         
     def initiate_board(self):
         random.seed()
@@ -204,6 +234,10 @@ def main():
             board.move(dir)
         elif dir is UNDO:
             board.board = board.last_board
+        elif dir is SAVE:
+            save_board(board.board)
+        elif dir is SAVE_LAST:
+            save_board(board.last_board)
         elif dir is QUIT:
             print_game_over(board.board)
             quit(0)
@@ -217,7 +251,6 @@ def main():
         board.put_numbers(text_list)
         
         create_warnings()
-        
         outer_frame.pack()
         
     def create_warnings():
@@ -246,7 +279,4 @@ def main():
     print('quit')
 
 main()
- 
-# def callback(event):
-#     frame.focus_set()
-#     print('clicked at', event.x, event.y)
+
