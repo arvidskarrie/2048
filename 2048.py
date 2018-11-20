@@ -136,14 +136,9 @@ class game_of_2048:
         return True
             
     def move(self, direction):
-        self.last_board = self.board
         self.rotate(direction)
         self.pack_n_merge()
-        
         self.rotate(-1 * direction)
-        
-        if self.changes_made:
-            self.insert_brick()
         
         return self.changes_made
         
@@ -224,6 +219,23 @@ class game_of_2048:
             text_list[i].pack()
         return
     
+    def detect_warnings(self):
+        real_board = self.board
+        
+        self.move(DOWN)
+        board = self.board
+        num_zeros = []
+        
+        for i in board:
+            num_zeros.append(i.count(0))
+        
+        
+        warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
+        
+        self.board = real_board
+        
+        return num_zeros in warning_list
+        
 def main():
     board = game_of_2048()
     
@@ -231,9 +243,13 @@ def main():
         dir = get_dir_from_char(ord(event.char))
         
         if dir in [UP, DOWN, LEFT, RIGHT]:
-            board.move(dir)
+            last_board = board.board
+            if board.move(dir):
+                board.insert_brick()
+                board.last_board = last_board
         elif dir is UNDO:
             board.board = board.last_board
+            # TODO: implement full undo
         elif dir is SAVE:
             save_board(board.board)
         elif dir is SAVE_LAST:
@@ -249,12 +265,9 @@ def main():
     def repaint():
         outer_frame.pack_forget()
         board.put_numbers(text_list)
-        
-        create_warnings()
+        if board.detect_warnings():
+            print('warning!')
         outer_frame.pack()
-        
-    def create_warnings():
-        return
     
     root = tk.Tk()
     root.bind('<Key>', make_a_move)
@@ -265,7 +278,9 @@ def main():
     text_list = []
     for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    board.board = [[0, 2, 4, 2],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+    #board.board = [[0, 2, 4, 2],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+    
+    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [2, 2, 0, 0]]
     
     print('undo: u')
     print('save current: i')
