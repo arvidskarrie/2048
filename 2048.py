@@ -27,6 +27,7 @@ color_scheme = get_color_scheme()
     
     
 def save_board(board):
+    #TODO: Add moves and undos
     dir = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
     #filename = str(10) #str(datetime.today())
     #file_dir = dir + filename + '.txt'
@@ -51,7 +52,7 @@ def save_board(board):
     f.write('\n' + str(board) + '\n')
     f.write('\n----------\n\n')
 
-def print_game_over(board):
+def print_game_over(board, nrof_moves_made, nrof_undos):
     print('game over:')
     for i in board:
         print(i)
@@ -64,6 +65,8 @@ def print_game_over(board):
         
     print('total points:', points)
     print('biggest brick:', biggest_brick)
+    print('moves:', nrof_moves_made)
+    print('undos:', nrof_undos)
 
 def empty_board():
     empty_board = [[0, 0, 0, 0] for i in range(4)]
@@ -84,8 +87,13 @@ def initiate_frames(outer_frame):
             
         return frame_list, text_list
     
-def get_dir_from_char(char):
-            if char is ord('w'): return UP
+def get_dir_from_char(char, dir = -1):
+            if char is ord('w'): 
+                if dir == -1:
+                    return UP
+                else:
+                    return -1
+                 
             elif char is ord('s'): return DOWN
             elif char is ord('d'): return RIGHT
             elif char is ord('a'): return LEFT
@@ -98,15 +106,21 @@ def get_dir_from_char(char):
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
-        self.last_board = self.board
+        
         
     def initiate_board(self):
         random.seed()
         
         self.board = empty_board()
+        self.board_history = []
+        
          
         self.insert_brick()
-    
+        
+        self.nrof_moves_made = 0
+        self.nrof_undos = 0
+        self.board_history.append(self.board)
+        
     def insert_brick(self):
         row = random.randint(0,3)
         col = random.randint(0,3)
@@ -119,7 +133,7 @@ class game_of_2048:
         self.board[row][col] = insert_value
         
         if self.is_game_lost():
-            print_game_over(self.board)
+            print_game_over(self.board, self.nrof_moves_made, self.nrof_undos)
             
     def is_game_lost(self):
         board = self.board
@@ -158,6 +172,7 @@ class game_of_2048:
                         self.board[row + 1][column] = 0
                         
                         self.changes_made = True
+        return self.changes_made
                         
     def merge(self):
         for column in range(4):
@@ -167,6 +182,7 @@ class game_of_2048:
                         self.board[row][column] *= 2
                         self.board[row + 1][column] = 0
                         self.changes_made = True
+        return self.changes_made
                         
     def rotate(self, direction):
         if direction < 0:
@@ -220,19 +236,29 @@ class game_of_2048:
     
     def detect_warnings(self):
         real_board = self.board
+        num_zeros = [0, 0, 0, 0]
         
-        self.move(DOWN)
-        board = self.board
-        num_zeros = []
-        
-        for i in board:
-            num_zeros.append(i.count(0))
-        
-        warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
-        
-        self.board = real_board
-        
-        return num_zeros in warning_list
+        # TODO: Why does not UP work?
+        for test_dir in [RIGHT, DOWN, LEFT]:
+            if self.move(test_dir):
+                for i in range(4): num_zeros[i] = self.board[i].count(0)
+                    
+                warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
+                if num_zeros in warning_list:
+                    # TODO: Check if empty slot is close to both 4 and 2.
+                    # TODO: Exchange for merge function
+                    mergable = False
+                    
+                    for row in range(1, 4):
+                        for col in range(3):
+                            if self.board[row][col] != 0 and self.board[row][col] == self.board[row][col+1]:
+                                mergable = True
+                                    
+                    if not mergable:
+                        return True, real_board
+             
+            self.board = real_board
+        return False, real_board
         
 def main():
     board = game_of_2048()
@@ -241,19 +267,24 @@ def main():
         dir = get_dir_from_char(ord(event.char))
         
         if dir in [UP, DOWN, LEFT, RIGHT]:
-            last_board = board.board
-            if board.move(dir):
+            if board.move(dir): #This returns true if an actual move has been made
                 board.insert_brick()
-                board.last_board = last_board
+                
+                board.nrof_moves_made += 1
+                
+                if board.nrof_moves_made == len(board.board_history):
+                    board.board_history.append([])
+                
+                board.board_history[board.nrof_moves_made] = board.board
+                
         elif dir is UNDO:
-            board.board = board.last_board
-            # TODO: implement full undo
+            board.nrof_moves_made -= 1
+            board.nrof_undos += 1
+            board.board = board.board_history[board.nrof_moves_made]
         elif dir is SAVE:
             save_board(board.board)
-        elif dir is SAVE_LAST:
-            save_board(board.last_board)
         elif dir is QUIT:
-            print_game_over(board.board)
+            print_game_over(board.board, board.nrof_moves_made, board.nrof_undos)
             quit(0)
         else:
             print('error:', ord(event.char))
@@ -262,7 +293,7 @@ def main():
         
     def repaint():
         outer_frame.pack_forget()
-        warnings =  board.detect_warnings()
+        warnings, board.board =  board.detect_warnings()
         
         board.put_numbers(text_list, warnings)
         outer_frame.pack()
@@ -272,13 +303,14 @@ def main():
     outer_frame = tk.Frame(root, width=400, height=400)
     
     frame_list, text_list = initiate_frames(outer_frame)
+    dir = 0
+    #text_list = []
+    #for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
     
-    text_list = []
-    for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
+    #board.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
     
-    #board.board = [[0, 2, 4, 2],[ 16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-    
-    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [2, 2, 0, 0]]
+    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 2, 0, 0]]
+    #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 4, 0, 0]]
     
     print('undo: u')
     print('save current: i')
