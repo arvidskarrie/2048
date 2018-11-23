@@ -26,7 +26,7 @@ QUIT = 8
 color_scheme = get_color_scheme()
     
     
-def save_board(board):
+def save_board(board, moves, undos):
     #TODO: Add moves and undos
     dir = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
     #filename = str(10) #str(datetime.today())
@@ -48,6 +48,8 @@ def save_board(board):
         
     f.write('\ntotal points:' + str(points) + '\n')
     f.write('biggest brick:' + str(biggest_brick) + '\n')
+    f.write('number of moves:' + str(moves) + '\n')
+    f.write('number of undos:' + str(undos) + '\n')
         
     f.write('\n' + str(board) + '\n')
     f.write('\n----------\n\n')
@@ -244,6 +246,8 @@ class game_of_2048:
                 for i in range(4): num_zeros[i] = self.board[i].count(0)
                     
                 warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
+                # TODO: Increase to involve full left and right layers as well.
+                
                 if num_zeros in warning_list:
                     # TODO: Check if empty slot is close to both 4 and 2.
                     # TODO: Exchange for merge function
@@ -282,7 +286,7 @@ def main():
             board.nrof_undos += 1
             board.board = board.board_history[board.nrof_moves_made]
         elif dir is SAVE:
-            save_board(board.board)
+            save_board(board.board, board.nrof_moves_made, board.nrof_undos)
         elif dir is QUIT:
             print_game_over(board.board, board.nrof_moves_made, board.nrof_undos)
             quit(0)
