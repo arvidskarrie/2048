@@ -5,14 +5,14 @@ Created on 4 nov. 2018
 '''
 
 import numpy as np
-import matplotlib as plt
+#import matplotlib as plt
 from datetime import date
 import time
 import os
 import random
 import tkinter as tk
 from color_scheme import get_color_scheme
-from unicodedata import bidirectional
+#from unicodedata import bidirectional
 
 UP = 0
 RIGHT = 1
@@ -27,12 +27,9 @@ color_scheme = get_color_scheme()
     
     
 def save_board(board, moves, undos):
-    #TODO: Add moves and undos
-    dir = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
-    #filename = str(10) #str(datetime.today())
-    #file_dir = dir + filename + '.txt'
+    file_name = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
     
-    f = open(dir, 'a')
+    f = open(file_name, 'a')
     d = str(time.strftime('%X'))
     f.write(d + ':\n\n')
     
@@ -71,7 +68,7 @@ def print_game_over(board, nrof_moves_made, nrof_undos):
     print('undos:', nrof_undos)
 
 def empty_board():
-    empty_board = [[0, 0, 0, 0] for i in range(4)]
+    empty_board = [[0, 0, 0, 0] for _ in range(4)]
     return empty_board
 
 def initiate_frames(outer_frame):
@@ -87,15 +84,10 @@ def initiate_frames(outer_frame):
             text_list.append(tk.Text(frame_list[i], height=3, width=7))
             text_list[i].tag_configure("center", justify='center')
             
-        return frame_list, text_list
+        return text_list
     
-def get_dir_from_char(char, dir = -1):
-            if char is ord('w'): 
-                if dir == -1:
-                    return UP
-                else:
-                    return -1
-                 
+def get_input_from_char(char):
+            if char is ord('w'): return UP
             elif char is ord('s'): return DOWN
             elif char is ord('d'): return RIGHT
             elif char is ord('a'): return LEFT
@@ -166,14 +158,12 @@ class game_of_2048:
     
     def pack(self):
         for column in range(4):
-            for repetitions in range(3):
-                for row in range(3):
-                    if (self.board[row][column] == 0) and (self.board[row + 1][column] != 0):
-                        
-                        self.board[row][column] = self.board[row + 1][column]
-                        self.board[row + 1][column] = 0
-                        
-                        self.changes_made = True
+            for row in range(3):
+                if (self.board[row][column] == 0) and (self.board[row + 1][column] != 0):
+                    self.board[row][column] = self.board[row + 1][column]
+                    self.board[row + 1][column] = 0
+                    
+                    self.changes_made = True
         return self.changes_made
                         
     def merge(self):
@@ -241,7 +231,7 @@ class game_of_2048:
         num_zeros = [0, 0, 0, 0]
         
         # TODO: Why does not UP work?
-        for test_dir in [RIGHT, DOWN, LEFT]:
+        for test_dir in [DOWN, RIGHT, LEFT]:
             if self.move(test_dir):
                 for i in range(4): num_zeros[i] = self.board[i].count(0)
                     
@@ -268,10 +258,10 @@ def main():
     board = game_of_2048()
     
     def make_a_move(event):
-        dir = get_dir_from_char(ord(event.char))
+        action_input = get_input_from_char(ord(event.char))
         
-        if dir in [UP, DOWN, LEFT, RIGHT]:
-            if board.move(dir): #This returns true if an actual move has been made
+        if action_input in [UP, DOWN, LEFT, RIGHT]:
+            if board.move(action_input): #This returns true if an actual move has been made
                 board.insert_brick()
                 
                 board.nrof_moves_made += 1
@@ -281,13 +271,14 @@ def main():
                 
                 board.board_history[board.nrof_moves_made] = board.board
                 
-        elif dir is UNDO:
+        elif action_input is UNDO:
             board.nrof_moves_made -= 1
             board.nrof_undos += 1
             board.board = board.board_history[board.nrof_moves_made]
-        elif dir is SAVE:
+        elif action_input is SAVE:
             save_board(board.board, board.nrof_moves_made, board.nrof_undos)
-        elif dir is QUIT:
+            print('saved at move', board.nrof_moves_made)
+        elif action_input is QUIT:
             print_game_over(board.board, board.nrof_moves_made, board.nrof_undos)
             quit(0)
         else:
@@ -300,25 +291,22 @@ def main():
         warnings, board.board =  board.detect_warnings()
         
         board.put_numbers(text_list, warnings)
+          
         outer_frame.pack()
     
     root = tk.Tk()
     root.bind('<Key>', make_a_move)
     outer_frame = tk.Frame(root, width=400, height=400)
     
-    frame_list, text_list = initiate_frames(outer_frame)
-    dir = 0
-    #text_list = []
-    #for i in range(16): text_list.append(tk.Text(frame_list[i], height=3, width=7))
+    text_list = initiate_frames(outer_frame)
     
     #board.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-    
-    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 2, 0, 0]]
+    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
     #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 4, 0, 0]]
     
     print('undo: u')
     print('save current: i')
-    print('save last: o')
+    # print('save last: o')
     print('quit: p')
     
     repaint()
