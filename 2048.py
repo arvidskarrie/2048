@@ -25,6 +25,19 @@ QUIT = 8
 
 color_scheme = get_color_scheme()
     
+def neighbours_equal(board):
+    # Looking for vertical merges
+    for col in range(4):
+        for row in range(3):
+            if board[row][col] != 0 and board[row][col] == board[row + 1][col]:
+                return True 
+    # Looking for horizontal merges
+    for row in range(4):
+        for col in range(3):
+            if board[row][col] != 0 and board[row][col] == board[row][col + 1]:
+                return True
+    #Nothing is mergable
+    return False 
     
 def save_board(board, moves, undos):
     file_name = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
@@ -101,6 +114,11 @@ class game_of_2048:
     def __init__(self):
         self.initiate_board()
         
+        #board.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+        #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
+        #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
+        self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
+        #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 4, 0, 0]]
         
     def initiate_board(self):
         random.seed()
@@ -153,17 +171,18 @@ class game_of_2048:
     def pack_n_merge(self):
         self.changes_made = False
         self.pack()
-        self.merge() 
+        if neighbours_equal(self.board): self.merge() 
         self.pack()
     
     def pack(self):
         for column in range(4):
-            for row in range(3):
-                if (self.board[row][column] == 0) and (self.board[row + 1][column] != 0):
-                    self.board[row][column] = self.board[row + 1][column]
-                    self.board[row + 1][column] = 0
-                    
-                    self.changes_made = True
+            for _ in range(3):
+                for row in range(3):
+                    if (self.board[row][column] == 0) and (self.board[row + 1][column] != 0):
+                        self.board[row][column] = self.board[row + 1][column]
+                        self.board[row + 1][column] = 0
+                        
+                        self.changes_made = True
         return self.changes_made
                         
     def merge(self):
@@ -232,23 +251,16 @@ class game_of_2048:
         
         # TODO: Why does not UP work?
         for test_dir in [DOWN, RIGHT, LEFT]:
+            #TODO: Enchange self to a new test_board
             if self.move(test_dir):
-                for i in range(4): num_zeros[i] = self.board[i].count(0)
+                board = self.board
+                for i in range(4): num_zeros[i] = board[i].count(0)
                     
                 warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
                 # TODO: Increase to involve full left and right layers as well.
                 
                 if num_zeros in warning_list:
-                    # TODO: Check if empty slot is close to both 4 and 2.
-                    # TODO: Exchange for merge function
-                    mergable = False
-                    
-                    for row in range(1, 4):
-                        for col in range(3):
-                            if self.board[row][col] != 0 and self.board[row][col] == self.board[row][col+1]:
-                                mergable = True
-                                    
-                    if not mergable:
+                    if not neighbours_equal(board):
                         return True, real_board
              
             self.board = real_board
@@ -299,10 +311,6 @@ def main():
     outer_frame = tk.Frame(root, width=400, height=400)
     
     text_list = initiate_frames(outer_frame)
-    
-    #board.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-    board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
-    #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 4, 0, 0]]
     
     print('undo: u')
     print('save current: i')
