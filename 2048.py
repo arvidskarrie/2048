@@ -116,7 +116,7 @@ class game_of_2048:
                 
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-        #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
+        self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
@@ -256,19 +256,22 @@ class game_of_2048:
         test_board = game_of_2048()
         
         # TODO: Why does not UP work?
-        for test_dir in [DOWN, RIGHT, LEFT]:
-            #TODO: Enchange self to a new test_board
-            test_board.board = self.board
+        for test_dir in range(4):
             
-            if test_board.move(test_dir):
-                board = test_board.board
-                for i in range(4): num_zeros[i] = board[i].count(0)
+            # TODO: Fix real copy function for board
+            for i in range(4): 
+                for j in range(4): 
+                    test_board.board[i][j] = self.board[i][j]
+            
+            to_test = test_board.move(test_dir)
+            if to_test:
+                for i in range(4): num_zeros[i] = test_board.board[i].count(0)
                     
                 warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
                 # TODO: Increase to involve full left and right layers as well.
                 
                 if num_zeros in warning_list:
-                    if not neighbours_equal(board):
+                    if not neighbours_equal(test_board.board):
                         return True
                     
         # No move resulted in warnings:    
