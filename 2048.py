@@ -113,13 +113,19 @@ def get_input_from_char(char):
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
-        
-        #board.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+                
+        #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
+        #self.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
-        self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
-        #board.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 2, 0], [2, 4, 0, 0]]
+        #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
+        #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
         
+        self.board_history[0] = self.board
+        
+    def __copy__(self):
+        return game_of_2048(self.board)
+            
     def initiate_board(self):
         random.seed()
         
@@ -246,14 +252,16 @@ class game_of_2048:
             text_list[i].pack()
     
     def detect_warnings(self):
-        real_board = self.board
         num_zeros = [0, 0, 0, 0]
+        test_board = game_of_2048()
         
         # TODO: Why does not UP work?
         for test_dir in [DOWN, RIGHT, LEFT]:
             #TODO: Enchange self to a new test_board
-            if self.move(test_dir):
-                board = self.board
+            test_board.board = self.board
+            
+            if test_board.move(test_dir):
+                board = test_board.board
                 for i in range(4): num_zeros[i] = board[i].count(0)
                     
                 warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
@@ -261,10 +269,10 @@ class game_of_2048:
                 
                 if num_zeros in warning_list:
                     if not neighbours_equal(board):
-                        return True, real_board
-             
-            self.board = real_board
-        return False, real_board
+                        return True
+                    
+        # No move resulted in warnings:    
+        return False
         
 def main():
     board = game_of_2048()
@@ -300,7 +308,7 @@ def main():
         
     def repaint():
         outer_frame.pack_forget()
-        warnings, board.board =  board.detect_warnings()
+        warnings = board.detect_warnings()
         
         board.put_numbers(text_list, warnings)
           

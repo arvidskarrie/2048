@@ -4,7 +4,8 @@ def get_color_scheme():
         'tomato', # 2
         '#fdaa48', # 4, light orange
         '#fffe7a', # 8 light yellow
-        '#cceb04', # 16 crappy olivedrab1
+        #'#cceb04', # 16 crappy olivedrab1
+        'OliveDrab1',
         '#56fca2', # 32 light green blue
         '#4abccc', # mix of 32 and 128
         '#3e82fc', # 128 dodger blue
