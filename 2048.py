@@ -24,8 +24,6 @@ SAVE_LAST = 7
 QUIT = 8
 STOP_PAUSE = 9
 
-pause = False
-
 color_scheme = get_color_scheme()
     
 def neighbours_equal(board):
@@ -64,7 +62,7 @@ def save_board(board, moves, undos):
     f.write('number of moves:' + str(moves) + '\n')
     f.write('number of undos:' + str(undos) + '\n')
         
-    f.write('\n' + str(board) + '\n')
+    f.write('\nself.board = ' + str(board) + '\n')
     f.write('\n----------\n\n')
 
 def print_game_over(board, nrof_moves_made, nrof_undos):
@@ -117,11 +115,12 @@ def get_input_from_char(char):
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
-        self.pause_until_q = False
-                
+        self.warnings = False
+        self.just_pressed_q = False
+        
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-        #self.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
+        self.board = [[0, 2, 0, 0], [2, 0, 4, 4], [64, 32, 16, 4], [4096, 512, 256, 32]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
@@ -242,7 +241,10 @@ class game_of_2048:
         for i in range(16):
             text_list[i].pack_forget()
             board_value = self.board[i//4][i%4]
-            frame_color = 'red' if warnings else color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))]
+            if self.warnings and not self.just_pressed_q:
+                frame_color = 'red'
+            else:
+                frame_color = color_scheme[0] if board_value is 0 else color_scheme[int(np.log2(board_value))]
              
             text_list[i].delete('1.0', tk.END)
             text_list[i].insert(tk.END, '\n ')
@@ -257,27 +259,26 @@ class game_of_2048:
             
             text_list[i].pack()
     
-    def detect_warnings(self):
+    def detect_warnings(self, attempted_move):
         # TODO: Fix unit test
         num_zeros = [0, 0, 0, 0]
         test_board = game_of_2048()
         
-        for test_dir in range(4):
-            # TODO: Fix real copy function for board
-            for i in range(4): 
-                for j in range(4): 
-                    test_board.board[i][j] = self.board[i][j]
-            
-            to_test = test_board.move(test_dir)
-            if to_test:
-                for i in range(4): num_zeros[i] = test_board.board[i].count(0)
-                    
-                warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
-                # TODO: Increase to involve full left and right layers as well.
+        # TODO: Fix real copy function for board
+        for i in range(4): 
+            for j in range(4): 
+                test_board.board[i][j] = self.board[i][j]
+        
+        to_test = test_board.move(attempted_move)
+        if to_test:
+            for i in range(4): num_zeros[i] = test_board.board[i].count(0)
                 
-                if num_zeros in warning_list:
-                    if not neighbours_equal(test_board.board):
-                        return True
+            warning_list = [[4, 4, 4, 1], [4, 4, 1, 0], [4, 1, 0, 0]]
+            # TODO: Increase to involve full left and right layers as well.
+            
+            if num_zeros in warning_list:
+                if not neighbours_equal(test_board.board):
+                    return True
         # No move resulted in warnings:
         return False
         
@@ -285,25 +286,33 @@ def main():
     board = game_of_2048()
      
     def make_a_move(event):
-        print('in make a move:', board.pause_until_q)
-        
         action_input = get_input_from_char(ord(event.char))
         
         if action_input is STOP_PAUSE: 
+            board.just_pressed_q = True
             repaint()
-            board.pause_until_q = False
             
         elif action_input in [UP, DOWN, LEFT, RIGHT]:
-            if not board.pause_until_q and board.move(action_input): #This returns true if an actual move has been made
-                board.insert_brick()
-                 
-                board.nrof_moves_made += 1
-                 
-                if board.nrof_moves_made == len(board.board_history):
-                    board.board_history.append([])
-                 
-                board.board_history[board.nrof_moves_made] = board.board
+            if not board.just_pressed_q:
+                board.warnings = board.detect_warnings(action_input) or board.warnings
+           
                 
+                    
+            if (not board.warnings) or board.just_pressed_q:
+                if board.move(action_input): #This returns true if an actual move has been made
+                    
+                    board.insert_brick()
+                     
+                    board.nrof_moves_made += 1
+                     
+                    if board.nrof_moves_made == len(board.board_history):
+                        board.board_history.append([])
+                     
+                    board.board_history[board.nrof_moves_made] = board.board
+                    repaint()
+                    board.just_pressed_q = False
+                    board.warnings = False
+            else: 
                 repaint()
                 
         elif action_input is UNDO:
@@ -321,21 +330,10 @@ def main():
             quit(0)
         else:
             print('error:', ord(event.char))
-             
     
     def repaint():
         outer_frame.pack_forget()
-        
-        if not board.pause_until_q:
-            warnings = board.detect_warnings()
-        else:
-            warnings = False
-            
-        if warnings:
-            board.pause_until_q = True
-            
-        board.put_numbers(text_list, warnings)
-           
+        board.put_numbers(text_list)
         outer_frame.pack()
      
     root = tk.Tk()
@@ -362,7 +360,7 @@ def detect_warnings_test():
         test.board = board
         test.board_history[0] = test.board
         
-        return (warnings_expected is (test.detect_warnings() or test.board_history[0] != test.board))
+        #return (warnings_expected is (test.detect_warnings() or test.board_history[0] != test.board))
     
     board_1 = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 2], [4, 2, 0, 0]]
     boolean_1 = False
