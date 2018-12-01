@@ -22,6 +22,9 @@ UNDO = 5
 SAVE = 6
 SAVE_LAST = 7
 QUIT = 8
+STOP_PAUSE = 9
+
+pause = False
 
 color_scheme = get_color_scheme()
     
@@ -108,15 +111,17 @@ def get_input_from_char(char):
             elif char is ord('i'): return SAVE
             elif char is ord('o'): return SAVE_LAST
             elif char is ord('p'): return QUIT
+            elif char is ord('q'): return STOP_PAUSE
             else: return 
             
 class game_of_2048:
     def __init__(self):
         self.initiate_board()
+        self.pause_until_q = False
                 
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 2],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
-        self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
+        #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
@@ -124,6 +129,7 @@ class game_of_2048:
         self.board_history[0] = self.board
         
     def __copy__(self):
+        # TODO: fix or remove
         return game_of_2048(self.board)
             
     def initiate_board(self):
@@ -252,7 +258,7 @@ class game_of_2048:
             text_list[i].pack()
     
     def detect_warnings(self):
-        # TODO: Fix automatic testing of this function
+        # TODO: Fix unit test
         num_zeros = [0, 0, 0, 0]
         test_board = game_of_2048()
         
@@ -272,18 +278,23 @@ class game_of_2048:
                 if num_zeros in warning_list:
                     if not neighbours_equal(test_board.board):
                         return True
-                    
-        # No move resulted in warnings:    
+        # No move resulted in warnings:
         return False
         
 def main():
     board = game_of_2048()
      
     def make_a_move(event):
+        print('in make a move:', board.pause_until_q)
+        
         action_input = get_input_from_char(ord(event.char))
-         
-        if action_input in [UP, DOWN, LEFT, RIGHT]:
-            if board.move(action_input): #This returns true if an actual move has been made
+        
+        if action_input is STOP_PAUSE: 
+            repaint()
+            board.pause_until_q = False
+            
+        elif action_input in [UP, DOWN, LEFT, RIGHT]:
+            if not board.pause_until_q and board.move(action_input): #This returns true if an actual move has been made
                 board.insert_brick()
                  
                 board.nrof_moves_made += 1
@@ -292,11 +303,16 @@ def main():
                     board.board_history.append([])
                  
                 board.board_history[board.nrof_moves_made] = board.board
-                 
+                
+                repaint()
+                
         elif action_input is UNDO:
             board.nrof_moves_made -= 1
             board.nrof_undos += 1
             board.board = board.board_history[board.nrof_moves_made]
+            
+            repaint()
+            
         elif action_input is SAVE:
             save_board(board.board, board.nrof_moves_made, board.nrof_undos)
             print('saved at move', board.nrof_moves_made)
@@ -305,13 +321,19 @@ def main():
             quit(0)
         else:
             print('error:', ord(event.char))
-         
-        repaint()
-         
+             
+    
     def repaint():
         outer_frame.pack_forget()
-        warnings = board.detect_warnings()
-         
+        
+        if not board.pause_until_q:
+            warnings = board.detect_warnings()
+        else:
+            warnings = False
+            
+        if warnings:
+            board.pause_until_q = True
+            
         board.put_numbers(text_list, warnings)
            
         outer_frame.pack()
@@ -357,13 +379,7 @@ def detect_warnings_test():
     board_4 = [[0, 0, 0, 0], [8, 4, 16, 16], [64, 32, 64, 32], [32, 64, 32, 64]]
     boolean_4 = True
     if not test_subroutine(board_4, boolean_4): print('test 4 failed')
-    
-#     if not test.detect_warnings() or test.board_history[0] != test.board:
-#         print('test 1 failed')
-#         quit(0)
-#     else:
-#         print('no failed tests in detect_warnings_test')
-    
+  
 detect_warnings_test()
 main()
 
