@@ -1,0 +1,3 @@
+Things to detect:
+After this move, is it possible (enough) that I'm forced to make a specific move?
+	Alternatively, is it possible that I have to make a left/right move to get in a 4430 state? 

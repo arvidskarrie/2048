@@ -252,12 +252,11 @@ class game_of_2048:
             text_list[i].pack()
     
     def detect_warnings(self):
+        # TODO: Fix automatic testing of this function
         num_zeros = [0, 0, 0, 0]
         test_board = game_of_2048()
         
-        # TODO: Why does not UP work?
         for test_dir in range(4):
-            
             # TODO: Fix real copy function for board
             for i in range(4): 
                 for j in range(4): 
@@ -279,21 +278,21 @@ class game_of_2048:
         
 def main():
     board = game_of_2048()
-    
+     
     def make_a_move(event):
         action_input = get_input_from_char(ord(event.char))
-        
+         
         if action_input in [UP, DOWN, LEFT, RIGHT]:
             if board.move(action_input): #This returns true if an actual move has been made
                 board.insert_brick()
-                
+                 
                 board.nrof_moves_made += 1
-                
+                 
                 if board.nrof_moves_made == len(board.board_history):
                     board.board_history.append([])
-                
+                 
                 board.board_history[board.nrof_moves_made] = board.board
-                
+                 
         elif action_input is UNDO:
             board.nrof_moves_made -= 1
             board.nrof_undos += 1
@@ -306,33 +305,65 @@ def main():
             quit(0)
         else:
             print('error:', ord(event.char))
-        
+         
         repaint()
-        
+         
     def repaint():
         outer_frame.pack_forget()
         warnings = board.detect_warnings()
-        
+         
         board.put_numbers(text_list, warnings)
-          
+           
         outer_frame.pack()
-    
+     
     root = tk.Tk()
     root.bind('<Key>', make_a_move)
     outer_frame = tk.Frame(root, width=400, height=400)
-    
+     
     text_list = initiate_frames(outer_frame)
-    
+     
     print('undo: u')
     print('save current: i')
     # print('save last: o')
     print('quit: p')
-    
+     
     repaint()
-    
+     
     root.mainloop()
-
+ 
     print('quit')
 
+def detect_warnings_test():
+    def test_subroutine(board, warnings_expected):
+        test = game_of_2048()
+        
+        test.board = board
+        test.board_history[0] = test.board
+        
+        return (warnings_expected is (test.detect_warnings() or test.board_history[0] != test.board))
+    
+    board_1 = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 2], [4, 2, 0, 0]]
+    boolean_1 = False
+    if not test_subroutine(board_1, boolean_1): print('test 1 failed')
+    
+    board_2 = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [4, 2, 0, 0]]
+    boolean_2 = True
+    if not test_subroutine(board_2, boolean_2): print('test 2 failed')
+    
+    board_3 = [[0, 0, 0, 0], [0, 0, 2, 0], [4, 2, 0, 8], [20, 40, 50, 60]]
+    boolean_3 = False
+    if not test_subroutine(board_3, boolean_3): print('test 3 failed')
+    
+    board_4 = [[0, 0, 0, 0], [8, 4, 16, 16], [64, 32, 64, 32], [32, 64, 32, 64]]
+    boolean_4 = True
+    if not test_subroutine(board_4, boolean_4): print('test 4 failed')
+    
+#     if not test.detect_warnings() or test.board_history[0] != test.board:
+#         print('test 1 failed')
+#         quit(0)
+#     else:
+#         print('no failed tests in detect_warnings_test')
+    
+detect_warnings_test()
 main()
 
