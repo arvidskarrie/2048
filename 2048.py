@@ -40,7 +40,7 @@ def neighbours_equal(board):
     #Nothing is mergable
     return False 
     
-def save_board(board, moves, undos):
+def save_board(board, moves, undos, qs_pressed):
     file_name = os.path.normpath('C:/Users/Arvid/Documents/GitHub/2048/logs/' + str(date.today()) + '.txt')
     
     f = open(file_name, 'a')
@@ -61,6 +61,7 @@ def save_board(board, moves, undos):
     f.write('biggest brick:' + str(biggest_brick) + '\n')
     f.write('number of moves:' + str(moves) + '\n')
     f.write('number of undos:' + str(undos) + '\n')
+    f.write('number of warnings:' + str(qs_pressed) + '\n')
         
     f.write('\nself.board = ' + str(board) + '\n')
     f.write('\n----------\n\n')
@@ -117,13 +118,15 @@ class game_of_2048:
         self.initiate_board()
         self.warnings = False
         self.just_pressed_q = False
+        self.nrof_qs_pressed = 0
         
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
-        self.board = [[0, 2, 0, 0], [2, 0, 4, 4], [64, 32, 16, 4], [4096, 512, 256, 32]]
+        #self.board = [[0, 2, 0, 0], [2, 0, 4, 4], [64, 32, 16, 4], [4096, 512, 256, 32]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
+        self.board = [[4, 2, 0, 0], [16, 4, 2, 0], [128, 64, 32, 16], [8192, 512, 256, 64]]
         
         self.board_history[0] = self.board
         
@@ -290,6 +293,7 @@ def main():
         
         if action_input is STOP_PAUSE: 
             board.just_pressed_q = True
+            board.nrof_qs_pressed += 1
             repaint()
             
         elif action_input in [UP, DOWN, LEFT, RIGHT]:
@@ -323,7 +327,7 @@ def main():
             repaint()
             
         elif action_input is SAVE:
-            save_board(board.board, board.nrof_moves_made, board.nrof_undos)
+            save_board(board.board, board.nrof_moves_made, board.nrof_undos, board.nrof_qs_pressed)
             print('saved at move', board.nrof_moves_made)
         elif action_input is QUIT:
             print_game_over(board.board, board.nrof_moves_made, board.nrof_undos)
@@ -354,29 +358,29 @@ def main():
     print('quit')
 
 def detect_warnings_test():
-    def test_subroutine(board, warnings_expected):
+    def test_subroutine(board, test_dir, warnings_expected):
         test = game_of_2048()
         
         test.board = board
         test.board_history[0] = test.board
         
-        #return (warnings_expected is (test.detect_warnings() or test.board_history[0] != test.board))
+        return (warnings_expected is (test.detect_warnings(test_dir) or test.board_history[0] != test.board))
     
-    board_1 = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 2], [4, 2, 0, 0]]
-    boolean_1 = False
-    if not test_subroutine(board_1, boolean_1): print('test 1 failed')
+    board_list = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 2], [4, 2, 0, 0]],
+                  [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [4, 2, 0, 0]],
+                  [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [4, 2, 0, 0]],
+                  [[0, 0, 0, 0], [0, 0, 2, 0], [4, 2, 0, 8], [20, 40, 50, 60]],
+                  [[0, 0, 0, 0], [8, 4, 16, 16], [64, 32, 64, 32], [32, 64, 32, 64]]]
     
-    board_2 = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2], [4, 2, 0, 0]]
-    boolean_2 = True
-    if not test_subroutine(board_2, boolean_2): print('test 2 failed')
+    dir_list = [DOWN, DOWN, LEFT, DOWN, LEFT]
+    bool_list = [False, True, False, False, True]
     
-    board_3 = [[0, 0, 0, 0], [0, 0, 2, 0], [4, 2, 0, 8], [20, 40, 50, 60]]
-    boolean_3 = False
-    if not test_subroutine(board_3, boolean_3): print('test 3 failed')
-    
-    board_4 = [[0, 0, 0, 0], [8, 4, 16, 16], [64, 32, 64, 32], [32, 64, 32, 64]]
-    boolean_4 = True
-    if not test_subroutine(board_4, boolean_4): print('test 4 failed')
+    for i, board, dir, bool in zip(range(len(board_list)), board_list, dir_list, bool_list):
+        if not test_subroutine(board, dir, bool): 
+            print('test', i, 'failed')
+            quit(0)
+    print('detect_warnings_test okay')
+
   
 detect_warnings_test()
 main()
