@@ -137,14 +137,14 @@ class game_of_2048:
         random.seed()
         
         self.board = empty_board()
-        self.board_history = []
+        self.board_history = [[] for _ in range(100)]
         
          
         self.insert_brick()
         
         self.nrof_moves_made = 0
         self.nrof_undos = 0
-        self.board_history.append(self.board)
+        self.board_history[0] = self.board
         
     def insert_brick(self):
         row = random.randint(0,3)
@@ -289,7 +289,6 @@ def main():
      
     def make_a_move(event):
         action_input = get_input_from_keycode(event.keycode)
-        print(event.keycode, event.char, event.keycode)
         
         if action_input is STOP_PAUSE: 
             board.just_pressed_q = True
@@ -303,10 +302,10 @@ def main():
             if (not board.warnings) or board.just_pressed_q:
                 if board.move(action_input): #This returns true if an actual move has been made
                     board.insert_brick()
+                    
                     board.nrof_moves_made += 1
-                    if board.nrof_moves_made == len(board.board_history):
-                        board.board_history.append([])
-                    board.board_history[board.nrof_moves_made] = board.board
+                    board.board_history[board.nrof_moves_made % 100] = board.board
+                    
                     repaint()
                     board.just_pressed_q = False
                     board.warnings = False
@@ -316,7 +315,7 @@ def main():
         elif action_input is UNDO:
             board.nrof_moves_made -= 1
             board.nrof_undos += 1
-            board.board = board.board_history[board.nrof_moves_made]
+            board.board = board.board_history[board.nrof_moves_made % 100]
             repaint()
             
         elif action_input is SAVE:
@@ -347,7 +346,7 @@ def main():
     repaint()
      
     root.mainloop()
- 
+    print(board.board_history)
     print('quit')
 
 def detect_warnings_test():
