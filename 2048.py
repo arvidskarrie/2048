@@ -101,17 +101,17 @@ def initiate_frames(outer_frame):
             
         return text_list
     
-def get_input_from_char(char):
-            if char is ord('w'): return UP
-            elif char is ord('s'): return DOWN
-            elif char is ord('d'): return RIGHT
-            elif char is ord('a'): return LEFT
-            elif char is ord('u'): return UNDO
-            elif char is ord('i'): return SAVE
-            elif char is ord('o'): return SAVE_LAST
-            elif char is ord('p'): return QUIT
-            elif char is ord('q'): return STOP_PAUSE
-            else: return 
+def get_input_from_keycode(keycode):
+            if keycode in [38, 87]: return UP
+            elif keycode in [40, 83]: return DOWN
+            elif keycode in [39, 68]: return RIGHT
+            elif keycode in [37, 65]: return LEFT
+            elif keycode == 85: return UNDO
+            elif keycode == 73: return SAVE
+            #elif keycode is 79: return SAVE_LAST
+            elif keycode == 80: return QUIT
+            elif keycode in [17, 81]: return STOP_PAUSE
+            else: return keycode
             
 class game_of_2048:
     def __init__(self):
@@ -122,11 +122,10 @@ class game_of_2048:
         
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
-        #self.board = [[0, 2, 0, 0], [2, 0, 4, 4], [64, 32, 16, 4], [4096, 512, 256, 32]]
         #self.board = [[0, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 4]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
-        self.board = [[4, 2, 0, 0], [16, 4, 2, 0], [128, 64, 32, 16], [8192, 512, 256, 64]]
+        
         
         self.board_history[0] = self.board
         
@@ -289,7 +288,8 @@ def main():
     board = game_of_2048()
      
     def make_a_move(event):
-        action_input = get_input_from_char(ord(event.char))
+        action_input = get_input_from_keycode(event.keycode)
+        print(event.keycode, event.char, event.keycode)
         
         if action_input is STOP_PAUSE: 
             board.just_pressed_q = True
@@ -299,19 +299,13 @@ def main():
         elif action_input in [UP, DOWN, LEFT, RIGHT]:
             if not board.just_pressed_q:
                 board.warnings = board.detect_warnings(action_input) or board.warnings
-           
-                
                     
             if (not board.warnings) or board.just_pressed_q:
                 if board.move(action_input): #This returns true if an actual move has been made
-                    
                     board.insert_brick()
-                     
                     board.nrof_moves_made += 1
-                     
                     if board.nrof_moves_made == len(board.board_history):
                         board.board_history.append([])
-                     
                     board.board_history[board.nrof_moves_made] = board.board
                     repaint()
                     board.just_pressed_q = False
@@ -323,7 +317,6 @@ def main():
             board.nrof_moves_made -= 1
             board.nrof_undos += 1
             board.board = board.board_history[board.nrof_moves_made]
-            
             repaint()
             
         elif action_input is SAVE:
@@ -333,7 +326,7 @@ def main():
             print_game_over(board.board, board.nrof_moves_made, board.nrof_undos)
             quit(0)
         else:
-            print('error:', ord(event.char))
+            print('error:', event.keycode)
     
     def repaint():
         outer_frame.pack_forget()
