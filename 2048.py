@@ -114,11 +114,13 @@ def get_input_from_keycode(keycode):
             else: return keycode
             
 class game_of_2048:
-    def __init__(self):
+    def __init__(self, board=0):
         self.initiate_board()
         self.warnings = False
         self.just_pressed_q = False
         self.nrof_qs_pressed = 0
+        self.nrof_moves_made = 0
+        self.nrof_undos = 0
         
         #self.board = [[0, 2, 4, 8], [16, 32, 64, 128],[ 256, 512, 1024, 2048],[ 4096, 2*4096, 4*4096, 8*4096]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 0, 2]]
@@ -126,25 +128,15 @@ class game_of_2048:
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 2, 0, 8], [4, 2, 4, 8]]
         #self.board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]]
         
+        if board != 0: self.board = board
         
+        self.board_history = [[] for _ in range(100)]
         self.board_history[0] = self.board
-        
-    def __copy__(self):
-        # TODO: fix or remove
-        return game_of_2048(self.board)
             
     def initiate_board(self):
         random.seed()
-        
         self.board = empty_board()
-        self.board_history = [[] for _ in range(100)]
-        
-         
         self.insert_brick()
-        
-        self.nrof_moves_made = 0
-        self.nrof_undos = 0
-        self.board_history[0] = self.board
         
     def insert_brick(self):
         row = random.randint(0,3)
@@ -264,7 +256,7 @@ class game_of_2048:
     def detect_warnings(self, attempted_move):
         # TODO: Fix unit test
         num_zeros = [0, 0, 0, 0]
-        test_board = game_of_2048()
+        test_board = game_of_2048(self.board)
         
         # TODO: Fix real copy function for board
         for i in range(4): 
